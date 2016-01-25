@@ -1,0 +1,9 @@
+############################################################
+# Dockerfile to build base OS to be referred later
+FROM ubuntu:14.04
+
+###########################################################
+# File Author / Maintainer
+MAINTAINER Colinas Maoling "colinas.maoling@t-online.de"
+################## BEGIN INSTALLATION ######################
+ENV DEBIAN_FRONTEND "noninteractive"

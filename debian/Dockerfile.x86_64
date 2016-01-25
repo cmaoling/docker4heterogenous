@@ -1,0 +1,10 @@
+############################################################
+# Dockerfile to build base OS to be referred later
+FROM debian:wheezy
+
+###########################################################
+# File Author / Maintainer
+MAINTAINER Colinas Maoling "colinas.maoling@t-online.de"
+################## BEGIN INSTALLATION ######################
+ENV DEBIAN_FRONTEND "noninteractive"
+RUN /bin/bash -c "apt-get update && apt-get upgrade -y && apt-get clean && apt-get autoremove"
