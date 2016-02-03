@@ -4,7 +4,7 @@ FROM armhfbuild/debian:wheezy
 
 ###########################################################
 # File Author / Maintainer
-MAINTAINER Colinas Maoling "colinas.maoling@t-online.de"
+MAINTAINER [user.name] "[user.id]"
 ################## BEGIN INSTALLATION ######################
 ENV DEBIAN_FRONTEND "noninteractive"
 RUN /bin/bash -c "apt-get update && apt-get upgrade -y && apt-get clean && apt-get autoremove"
