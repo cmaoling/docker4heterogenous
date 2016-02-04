@@ -13,6 +13,7 @@ NAME          := $(shell $(GIT) config --get user.name)
 ARCH          := $(shell uname -m)
 PARENTMAKE    := $(shell ls $(ROOTDIR)/../Makefile 2>/dev/null)
 DOCKERFILE    := Dockerfile
+TEMPDIR       := $(shell mktemp -d)
 .PHONY: all build build-nocache test tag_latest release
 
 all: parent build
@@ -60,7 +61,14 @@ Personalize: Dockerfile
 
 build: Personalize
 	@echo "*** PWD=$(ROOT_DIR) ID=<$(ID)> EMAIL=<$(EMAIL)> GIT=<$(GIT)> DOCKER=$(DOCKERFILE) NAME=$(SED_NAME) TAG=<$(TAG)> PARENT_NAME=<$(PARENT)> PARENT_TAG=<$(PARENT_TAG)>   ***"
-	sed -e 's/\[current.repository\]/$(TARGET)/' -e 's/\[current.tag\]/$(TAG)/' -e 's/\[parent.repository\]/$(PARENT)/' -e 's/\[parent.tag\]/$(PARENT_TAG)/' -e 's/\[user.id\]/$(ID)/' -e 's/\[user.name\]/$(SED_NAME)/' -e 's/\[user.email\]/$(EMAIL)/' ${DOCKERFILE} | docker build -t $(ID)/$(TARGET)$(TAG) -
+	@echo "$(TEMPDIR)"
+	sed -e 's/\[current.repository\]/$(TARGET)/' -e 's/\[current.tag\]/$(TAG)/' -e 's/\[parent.repository\]/$(PARENT)/' -e 's/\[parent.tag\]/$(PARENT_TAG)/' -e 's/\[user.id\]/$(ID)/' -e 's/\[user.name\]/$(SED_NAME)/' -e 's/\[user.email\]/$(EMAIL)/' ${DOCKERFILE} > $(TEMPDIR)/Dockerfile
+	tar cvf  $(TEMPDIR)/tarball .
+	tar --delete --wildcards -f $(TEMPDIR)/tarball ./Dockerfile*
+	@cd $(TEMPDIR); tar rf $(TEMPDIR)/tarball ./Dockerfile
+	tar tvf $(TEMPDIR)/tarball
+	cat $(TEMPDIR)/tarball | docker build -t $(ID)/$(TARGET)$(TAG) -
+	rm -rf $(TEMPDIR)
 
 tag_latest:
 	docker tag -f $(TARGET):$(VERSION) $(TARGET):latest
