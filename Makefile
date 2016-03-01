@@ -16,9 +16,10 @@ DOCKERFILE    := Dockerfile
 TEMPDIR       := $(shell mktemp -d)
 .PHONY: all build build-nocache test tag_latest release
 
-all: parent build
+all: build
 
 Dockerfile:
+	@echo "[Dockerfile]" 
 	$(eval TEST = $(DOCKERFILE)"."$(ARCH))
 ifeq (,$(wildcard $(TEST)))
 		$(eval DOCKERFILE=$(DOCKERFILE).$(ARCH))
@@ -28,7 +29,7 @@ else
 endif
 
 bootstrap: $(ROOT_DIR)/Makefile
-	@echo -n "Parent-Make <$@> <$(ROOT_DIR)>: "
+	@echo -n "[Bootstrap  ] Parent-Make <$@> <$(ROOT_DIR)>: "
 	@for a in  $(DIRECTORY); do \
 		echo "$${a}Dockerfile"; \
 		if [ -d $$a ]; then \
@@ -43,13 +44,13 @@ bootstrap: $(ROOT_DIR)/Makefile
 	@echo "Done!"
 
 parent: $(ROOT_DIR)/../Makefile
-	@echo -n "Parent-Make <$@> <$(ROOT_DIR)>: "
-	-@make -C $(ROOT_DIR)/.. -f $(ROOT_DIR)/../Makefile -k parent
+	@echo -n "[Parent     ] Parent-Make <$@> <$(ROOT_DIR)>: "
+	-@make -C $(ROOT_DIR)/.. -f $(ROOT_DIR)/../Makefile -k bootstrap
 	@make -C $(ROOT_DIR)/.. -f $(ROOT_DIR)/../Makefile -k build
 
 
 Personalize: Dockerfile
-	@echo -n "Personalize <$(DOCKERFILE)>: "
+	@echo -n "[Dockerfile] Personalize <$(DOCKERFILE)>: "
 	$(eval SED_NAME = $(shell echo "$(NAME)" | sed 's/ /\\ /g' ))
 	$(eval TAG  = $(shell cat image.tag 2> /dev/null))
 	$(eval TAG  = $(shell echo ":$(TAG)" | sed -e 's/^:$$//g' ))
@@ -60,8 +61,8 @@ Personalize: Dockerfile
 	@echo "Parent : <$(PARENT)> Dir: <$(PARENT_DIR)>"
 
 build: Personalize
-	@echo "*** PWD=$(ROOT_DIR) ID=<$(ID)> EMAIL=<$(EMAIL)> GIT=<$(GIT)> DOCKER=$(DOCKERFILE) NAME=$(SED_NAME) TAG=<$(TAG)> PARENT_NAME=<$(PARENT)> PARENT_TAG=<$(PARENT_TAG)>   ***"
-	@echo "$(TEMPDIR)"
+	@echo "[Personalize] *** PWD=$(ROOT_DIR) ID=<$(ID)> EMAIL=<$(EMAIL)> GIT=<$(GIT)> DOCKER=$(DOCKERFILE) NAME=$(SED_NAME) TAG=<$(TAG)> PARENT_NAME=<$(PARENT)> PARENT_TAG=<$(PARENT_TAG)>   ***"
+	@echo "[Personalize] $(TEMPDIR)"
 	sed -e 's/\[current.repository\]/$(TARGET)/' -e 's/\[current.tag\]/$(TAG)/' -e 's/\[parent.repository\]/$(PARENT)/' -e 's/\[parent.tag\]/$(PARENT_TAG)/' -e 's/\[user.id\]/$(ID)/' -e 's/\[user.name\]/$(SED_NAME)/' -e 's/\[user.email\]/$(EMAIL)/' ${DOCKERFILE} > $(TEMPDIR)/Dockerfile
 	tar cvf  $(TEMPDIR)/tarball .
 	tar --delete --wildcards -f $(TEMPDIR)/tarball ./Dockerfile*
