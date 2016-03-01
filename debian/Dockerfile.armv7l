@@ -1,6 +1,6 @@
 ############################################################
 # Dockerfile to build base OS to be referred later
-FROM armhfbuild/debian:wheezy
+FROM armhfbuild/[current.repository][current.tag]
 
 ###########################################################
 # File Author / Maintainer
