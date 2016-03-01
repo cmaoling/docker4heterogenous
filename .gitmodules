@@ -1,0 +1,3 @@
+[submodule "ubuntu/cardDAV2Fritzbox"]
+	path = ubuntu/cardDAV2Fritzbox
+	url = git@github.com:cmaoling/cardDAV2Fritzbox.git
