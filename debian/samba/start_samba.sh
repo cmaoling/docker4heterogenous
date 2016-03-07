@@ -18,7 +18,7 @@ export WUSER=$USERS
 for user in $USERS; do
   echo $user
   useradd -ms /bin/bash $user
-  smbpasswd -a $user 
+  smbpasswd -n -a $user 
 done
 echo "workgroup = $WORKGROUP
 server string = %h server (Samba, Ubuntu)
@@ -26,7 +26,7 @@ security = user
 encrypt passwords = true
 invalid users = root
 " >> /etc/samba/smb.conf
-chmod 700 /etc/samba/smbpasswd
+#chmod 700 /etc/samba/smbpasswd
 for vol in $VOLUMES; do
   echo "add $vol"
   export VOLUME=$vol
@@ -34,5 +34,5 @@ for vol in $VOLUMES; do
   cat /share.tmpl | envsubst >> /etc/samba/smb.conf
 done
 /etc/init.d/samba start
-netstat -tulpn | egrep "samba|smbd|nmbd|winbind"
+#netstat -tulpn | egrep "samba|smbd|nmbd|winbind"
 top

@@ -26,6 +26,6 @@ VOLUME /srv/samba/share
 RUN ls -la /etc/samba/smb.conf 
 RUN testparm -s /etc/samba/smb.conf > /etc/samba/smb.conf
 
-ADD start.sh /start.sh
-RUN chmod 0755 /start.sh
-ENTRYPOINT exec /start.sh
+ADD start_samba.sh /start_samba.sh
+RUN chmod 0755 /start_samba.sh
+ENTRYPOINT exec /start_samba.sh
