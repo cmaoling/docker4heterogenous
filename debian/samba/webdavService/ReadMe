@@ -1,0 +1,2 @@
+docker run --privileged -e "WEBDAV=https://webdav.office.1und1.de" -v "/home/nicolas/1und1:/webdav" -v "/home/nicolas/mnt_1und1:/mnt_webdav" -t colinas/webdav
+

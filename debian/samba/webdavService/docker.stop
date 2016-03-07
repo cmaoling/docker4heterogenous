@@ -1,0 +1,7 @@
+WEBDAVCONF=/home/nicolas/webdav
+ls -la $WEBDAVCONF
+echo "Unmounting $WEBDAVCONF"
+sudo umount $WEBDAVCONF
+echo "complete"
+ls -la $WEBDAVCONF
+
