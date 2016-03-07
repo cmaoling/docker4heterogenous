@@ -1,4 +1,5 @@
-WEBDAVCONF=/home/nicolas/webdav
+echo "$0 <configuration directory=$1>"
+WEBDAVCONF=${1:-.}
 ls -la $WEBDAVCONF
 echo "Unmounting $WEBDAVCONF"
 sudo umount $WEBDAVCONF

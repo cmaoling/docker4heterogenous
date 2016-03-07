@@ -1,4 +1,4 @@
-echo "docker.start <configuration directory>"
+echo "$0 <configuration directory=$1>"
 WEBDAVCONF=${1:-.}
 WEBDAVROOT=/webdav
 SMBCREDENTIALS=$WEBDAVCONF/smbcredentials
