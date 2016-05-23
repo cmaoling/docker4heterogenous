@@ -3,6 +3,10 @@ WEBDAVCONF=${1:-.}
 WEBDAVROOT=/webdav
 SMBCREDENTIALS=$WEBDAVCONF/smbcredentials
 echo "CONF: $WEBDAVCONF"
+if  [ `mount | grep " on $WEBDAVCONF " | wc -l` -gt 0  ]; then
+  echo "Already mounted. ABORT"
+  exit
+fi
 echo "ROOT: $WEBDAVROOT"
 WEBDAVUSER=`grep username $SMBCREDENTIALS | cut -d= -f2`
 echo "USER: $WEBDAVUSER"
@@ -14,16 +18,16 @@ CONTAINERID=`docker run -d --privileged -e "WORKGROUP=$DOMAIN" -e "WEBDAV_ROOT=$
 echo "ContainerID: $CONTAINERID"
 DOCKERIP=`docker inspect $CONTAINERID | grep \"IPAddress\" | tr -d ' \,\"'  |  uniq | cut -d\: -f2`
 echo "DockerIP: $DOCKERIP"
-docker exec -it $CONTAINERID useradd -ms /bin/bash $WEBDAVUSER
+docker exec -it $CONTAINERID useradd -ms /bin/bash -g sambashare $WEBDAVUSER
 echo "$PASSWD
 $PASSWD
 " | docker exec -i $CONTAINERID  smbpasswd -as $WEBDAVUSER
 echo -n "Sleeping..."
-sleep 15
+sleep 5
 echo ""
 echo "Credentials $SMBCREDENTIALS "
 smbclient -L $DOCKERIP -A $SMBCREDENTIALS
-echo -n "Mounting //$DOCKERIP/webdav $WEBDAVCONF"
-sudo mount -t cifs -o credentials=$SMBCREDENTIALS //$DOCKERIP/webdav $WEBDAVCONF
+echo -n "Mounting //$DOCKERIP/webdav $WEBDAVCONF for user $WEBDAVUSER" 
+sudo mount -t cifs -o uid=$WEBDAVUSER,credentials=$SMBCREDENTIALS //$DOCKERIP/webdav $WEBDAVCONF
 echo " - done."
 ls -la $WEBDAVCONF
