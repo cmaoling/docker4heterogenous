@@ -13,7 +13,7 @@ export MAPSYSTEM=${MAPSYSTEM:-"no"}
 export MAPHIDDEN=${MAPHIDDEN:-"no"}
 export WORKGROUP=${WORKGROUP:-"WORKGROUP"}
 # Start pagemaster
-echo $USERS
+echo "USER=<$USERS>"
 export WUSER=$USERS
 for user in $USERS; do
   echo $user
