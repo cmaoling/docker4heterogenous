@@ -14,9 +14,36 @@ ARCH          := $(shell uname -m)
 PARENTMAKE    := $(shell ls $(ROOTDIR)/../Makefile 2>/dev/null)
 DOCKERFILE    := Dockerfile
 TEMPDIR       := $(shell mktemp -d)
+ERROR         := FALSE
 .PHONY: all build build-nocache test tag_latest release
 
 all: build
+
+check:
+ifndef ID
+	$(info [ERROR] ID is not defined: Run <git config --add user.id "cmaoling">)
+	@(ERROR="TRUE")
+else
+	@echo "Will use following ID provided through git: $(ID)"
+endif
+ifndef EMAIL
+        $(info [ERROR] EMAIL is not defined: Run <git config --add user.email "cmaoling@gmail.com">)
+	@(ERROR="TRUE")
+else
+	@echo "Will use following eMail provided through git: $(EMAIL)"
+endif
+ifndef NAME
+        $(info [ERROR] NAME is not defined: Run <git config --add user.name "Colinas Maoling">)
+	@(ERROR="TRUE")
+else
+	@echo "Will use following maintainer provided through git: $(NAME)"
+endif
+ifeq ($(ERROR), "FALSE")
+	$(error "Unable to continue, please fix above errors first.$(ERROR),$(ID),$(NAME),$(EMAIL)")
+else
+	@echo "All variables are set."
+endif
+
 
 Dockerfile:
 	@echo "[Dockerfile]" 
@@ -60,7 +87,7 @@ Personalize: Dockerfile
 	@echo -n "Parent-Tag: <$(PARENT_TAG)> "
 	@echo "Parent : <$(PARENT)> Dir: <$(PARENT_DIR)>"
 
-build: Personalize
+build: check Personalize
 	@echo "[Personalize] *** PWD=$(ROOT_DIR) ID=<$(ID)> EMAIL=<$(EMAIL)> GIT=<$(GIT)> DOCKER=$(DOCKERFILE) NAME=$(SED_NAME) TAG=<$(TAG)> PARENT_NAME=<$(PARENT)> PARENT_TAG=<$(PARENT_TAG)>   ***"
 	@echo "[Personalize] $(TEMPDIR)"
 	sed -e 's/\[current.repository\]/$(TARGET)/' -e 's/\[current.tag\]/$(TAG)/' -e 's/\[parent.repository\]/$(PARENT)/' -e 's/\[parent.tag\]/$(PARENT_TAG)/' -e 's/\[user.id\]/$(ID)/' -e 's/\[user.name\]/$(SED_NAME)/' -e 's/\[user.email\]/$(EMAIL)/' ${DOCKERFILE} > $(TEMPDIR)/Dockerfile
