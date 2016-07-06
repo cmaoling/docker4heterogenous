@@ -22,6 +22,7 @@ ENV WEBDAV_CONF /webdav-conf
 #RUN ln -s /var/lib/samba /webdav-conf
 VOLUME /webdav-conf
 ENV WEBDAV_ROOT /webdav
+ENV WEBDAV_USER webdav
 ADD start_webdav.sh /start_webdav.sh
 RUN chmod 0755 /start_webdav.sh
 ENTRYPOINT exec /start_webdav.sh

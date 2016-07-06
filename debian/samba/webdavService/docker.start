@@ -1,30 +1,26 @@
 echo "$0 <configuration directory=$1>"
 WEBDAVCONF=${1:-.}
 WEBDAVROOT=/webdav
-SMBCREDENTIALS=$WEBDAVCONF/smbcredentials
+SMBCREDENTIALS=`mktemp`
 echo "CONF: $WEBDAVCONF"
 if  [ `mount | grep " on $WEBDAVCONF " | wc -l` -gt 0  ]; then
   echo "Already mounted. ABORT"
   exit
 fi
 echo "ROOT: $WEBDAVROOT"
-WEBDAVUSER=`grep username $SMBCREDENTIALS | cut -d= -f2`
+WEBDAVUSER=`whoami`
 echo "USER: $WEBDAVUSER"
-PASSWD=`grep password $SMBCREDENTIALS | cut -d= -f2`
-#echo "PWD:  $PASSWD"
-DOMAIN=`grep domain $SMBCREDENTIALS | cut -d= -f2`
+DOMAIN=DOCKERNET
 echo "DOMAIN:  $DOMAIN"
-CONTAINERID=`docker run -d --privileged -e "WORKGROUP=$DOMAIN" -e "WEBDAV_ROOT=$WEBDAVROOT" -v $WEBDAVCONF:/webdav-conf colinas/webdavservice`
+CONTAINERID=`docker run -d --privileged -e "WORKGROUP=$DOMAIN" -e "WEBDAV_ROOT=$WEBDAVROOT" -e "WEBDAV_USER=$WEBDAVUSER" -v $WEBDAVCONF:/webdav-conf colinas/webdavservice`
 echo "ContainerID: $CONTAINERID"
 DOCKERIP=`docker inspect $CONTAINERID | grep \"IPAddress\" | tr -d ' \,\"'  |  uniq | cut -d\: -f2`
-echo "DockerIP: $DOCKERIP"
-docker exec -it $CONTAINERID useradd -ms /bin/bash -g sambashare $WEBDAVUSER
-echo "$PASSWD
-$PASSWD
-" | docker exec -i $CONTAINERID  smbpasswd -as $WEBDAVUSER
 echo -n "Sleeping..."
 sleep 5
-echo ""
+echo "Creating credentials"
+echo "username=$WEBDAVUSER
+password="`echo $CONTAINERID | cut -c-12 | base64`"
+domain=$DOCKERNET" > $SMBCREDENTIALS
 echo "Credentials $SMBCREDENTIALS "
 smbclient -L $DOCKERIP -A $SMBCREDENTIALS
 echo -n "Mounting //$DOCKERIP/webdav $WEBDAVCONF for user $WEBDAVUSER" 
