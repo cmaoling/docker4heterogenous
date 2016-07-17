@@ -1,0 +1,181 @@
+#!/bin/bash
+echo "$0 <command=$1> <configuration=$2>"
+modus=`echo "$1" | tr '[:lower:]' '[:upper:]'`
+MODUS="NONE"
+config="$2"
+function installJQ {
+	foundJQ=`which jq | wc -l`
+	if [ $foundJQ -eq 0 ]; then
+		echo "jq is required. Attempting to install"
+		sudo apt-get -y install jq
+		foundJQ=`which jq | wc -l`
+		if [ $foundJQ -eq 0 ]; then
+			echo "FAILED to install mandatory jq tool. Abort"
+			exit
+		fi
+	else 
+		echo "jq found"
+	fi
+}
+
+
+function checkJSON {
+	if [ -e "$1" ]; then
+		if [ `cat $1 | jq '' | wc -l` -gt 0 ]; then
+			echo "Valid JSON config provided"
+		else
+			echo "Invalid JSON encoding in config file <$1>: "`cat $1 | jq ''`
+			exit
+		fi
+	else
+ 	        echo "Unable to find config file <$1> $?"
+		exit
+	fi
+}
+
+function checkParm {
+	MODUS="NONE"
+	if [ "$1" == "START" ]; then
+	        MODUS="MOUNT"
+		checkJSON $config
+	else
+	        if [ "$1" == "STOP" ]; then
+	                MODUS="UMOUNT"
+			checkJSON $config
+	        else
+	                if [ "$1" == "STATUS" ]; then
+	                        MODUS="INFO"
+	                else
+	                      if [ "$1" == "CHECK" ]; then
+					checkJSON $config
+	                      else
+	                                echo "[ERROR] Invalid command $1 provided. May be START, STOP and STATUS"
+	                                exit
+	                      fi
+	                fi
+	        fi
+	fi
+}
+
+function getMountCount {
+	echo `cat $config | jq '.mount | length'`
+}
+
+function getMountRecord {
+	echo `cat $config | jq ".mount[$1]"`
+}
+
+function getServerRecord {
+	echo `cat $config | jq ".servers[$1]"`
+}
+
+function getCredentialRecord {
+	echo `cat $config | jq ".credentials[$1]"`
+}
+
+function getServerID {
+	echo `echo $mountRecord | jq '.server'`
+}
+
+function createMount {
+                mountPoint="$1"
+                mountPoint=`eval echo $mountPoint`
+		shareIP="$2"
+                shareName="$3"
+                shareAddress="//$shareIP/$shareName"
+		ABORT=0
+	        if [ "$mountPoint" == "null" ]; then
+	                ABORT=1
+	        fi
+	        if [ "$shareName" == "null" ]; then
+	                ABORT=1
+	        fi
+	        if [ $ABORT -gt 0 ]; then
+	                echo "Please review mount record in $config: $mountRecord"
+	        else
+	                if [ `mount | grep "$shareAddress on $mountPoint" | wc -l` -gt 0 ]; then
+                                if [ "$MODUS" == "UMOUNT" ]; then
+					cmd="umount $mountPoint"
+                                        echo -n "Unmount $shareAddress  from $mountPoint "
+                                        sudo $cmd
+					echo " - done"
+				else
+		                        echo "Mount $shareAddress on $mountPoint already exist."
+				fi
+	                else
+				if [ "$MODUS" == "MOUNT" ]; then
+		                        mkdir -p $mountPoint
+		                        cmd="mount -t cifs -o credentials=$sambaCredentials $shareAddress $mountPoint"
+	        	                echo -n "Mounting $shareAddress on $mountPoint"
+	                	        sudo $cmd
+        	                	echo " - done"
+				else
+					echo "No Mount of  $shareAddress on $mountPoint found"
+				fi
+	                fi
+		fi
+}
+
+installJQ
+checkParm $modus
+
+for ((i=0;i<`cat $config | jq '.mount | length'`;i++)); do
+	#echo $i
+	mountRecord=`getMountRecord $i`
+ 	serverID=`echo $mountRecord | jq '.server'`
+	serverRecord=`getServerRecord $serverID`
+	credentialID=`echo $mountRecord | jq '.credential'`
+	credentialRecord=`getCredentialRecord $credentialID`
+	ABORT=0
+	if [ "$serverRecord" == "null" ]; then
+		echo "[ERROR] No valid server record with ID $serverID found."
+		ABORT=1
+	fi 
+        if [ "$credentialRecord" == "null" ]; then
+                echo "[ERROR] No valid credential record with ID $credentialID found."
+		ABORT=1
+        fi
+	if [ $ABORT -gt 0 ]; then
+		echo "Please review $config regarding mountRecord $mountRecord"
+		exit
+	fi
+	sambaCredentials=`mktemp`
+	sambaServerIP=`echo $serverRecord | jq '.IP' | tr -d \"`
+	#echo "modus=$MODUS sambaCredentials=<$sambaCredentials> serverRecord <$serverRecord> credentialRecord <$credentialRecord>"
+	if [ "$MODUS" == "MOUNT" ]; then
+		ping -c 3 $sambaServerIP > /dev/null 2>&1
+	else
+		#dummy command
+		 ping -c 3  127.0.0.1 > /dev/null 2>&1
+	fi
+	if [ $? -eq 0 ]; then
+		echo "username="`echo $credentialRecord | jq '.username' | tr -d \"` >> $sambaCredentials
+	        echo "password="`echo $credentialRecord | jq '.password' | tr -d \" | base64 --decode` >> $sambaCredentials
+	        echo "domain="`echo $serverRecord | jq '.workgroup' | tr -d \"`      >> $sambaCredentials
+		#echo "Using Credentials in $sambaCredentials to connect to $sambaServerIP"
+		#smbclient -L $sambaServerIP -A $sambaCredentials
+		mountCnt=`echo $mountRecord | jq '.mount'`
+		shareCnt=`echo $mountRecord | jq '.share'`
+		DATA=0
+		if [ "$mountCnt" != "null" -a "$shareCnt" != "null" ]; then
+			createMount `echo $mountRecord | jq '.mount' | tr -d \"`  $sambaServerIP `echo $mountRecord | jq '.share' | tr -d \"` 
+			DATA=1
+		fi
+		linksCnt=`echo $mountRecord | jq '.links | length '`
+		if [ $linksCnt -gt 0 ]; then
+			linksRecord=`echo $mountRecord | jq '.links'`
+			#echo "$mountRecord => $linksRecord"
+			for ((j=0;j<$linksCnt;j++)); do
+				createMount `echo $mountRecord | jq ".links[$j] | keys | .[0]" | tr -d \"` $sambaServerIP `echo $mountRecord | jq ".links[$j] | .[]"  | tr -d \"`
+				DATA=1
+			done
+		fi
+	        if [ $DATA -eq 0 ]; then
+	                 echo "[WARN] Please review $config regarding mountRecord (#$i) $mountRecord. No valid links or mount/share pair found: (mount=$mountCnt, share=$shareCnt, links=$linksCnt)"
+ 	        fi
+		rm $sambaCredentials
+	else
+		echo "[WARN] SambaServer $sambaServerIP does not respond."
+	fi
+done
+
