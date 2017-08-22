@@ -85,6 +85,7 @@ Personalize: Dockerfile
 	$(eval PARENT_TAG  = $(shell cat ../image.tag 2> /dev/null))
 	$(eval PARENT_TAG  = $(shell echo ":$(PARENT_TAG)" | sed -e 's/^:$$//g' | tr '[:upper:]' '[:lower:]'))
 	@echo -n "Parent-Tag: <$(PARENT_TAG)> "
+	$(eval PARENT  = $(shell echo "$(PARENT)" | tr '[:upper:]' '[:lower:]'))
 	@echo "Parent : <$(PARENT)> Dir: <$(PARENT_DIR)>"
 
 build: check Personalize
