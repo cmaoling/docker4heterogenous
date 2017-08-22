@@ -4,9 +4,9 @@
 [submodule "debian/cardDAV2Fritzbox"]
 	path = debian/cardDAV2Fritzbox
 	url = https://github.com/cmaoling/cardDAV2Fritzbox.git
-[submodule "ubuntu/NetBeans"]
-	path = ubuntu/NetBeans
-	url = https://github.com/cmaoling/docker-netbeans
 [submodule "ubuntu/MoneyManagerEx"]
 	path = ubuntu/MoneyManagerEx
 	url = https://github.com/cmaoling/moneymanagerex
+[submodule "ubuntu/NetBeans"]
+	path = ubuntu/NetBeans
+	url = https://github.com/cmaoling/docker-netbeans
