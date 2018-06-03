@@ -34,8 +34,8 @@ ENV APACHE_DOCUMENTROOT /var/www
 # FIX: "apache2: could-not-reliably-determine-the-servers-fully-qualified-domain-name"
 # based on http://aslamnajeebdeen.com/blog/how-to-fix-apache-could-not-reliably-determine-the-servers-fully-qualified-domain-name-using-127011-for-servername-error-on-ubuntu
 RUN echo "ServerName localhost" >> /etc/apache2/httpd.conf
-# based on http://askubuntu.com/questions/256013/could-not-reliably-determine-the-servers-fully-qualified-domain-name
-RUN echo "ServerName localhost" >> /etc/apache2/conf.d/fqdn
+## based on http://askubuntu.com/questions/256013/could-not-reliably-determine-the-servers-fully-qualified-domain-name
+#RUN echo "ServerName localhost" >> /etc/apache2/conf.d/fqdn
 #Php5 packages installation:
 #RUN apt-get install -y php5-gd php5-json php5-sqlite php5-curl php5-intl php5-mcrypt php5-imagick php-net-ftp php5-gmp php-apc php5-apcu php5-imagick
 #create key
@@ -46,11 +46,10 @@ ADD host.key /etc/ssl/private/apache.key
 ADD host.crt /etc/ssl/certs/apache.crt
 RUN /usr/sbin/a2enmod ssl
 RUN /usr/sbin/a2enmod rewrite
-RUN /usr/sbin/a2dissite default
-RUN /usr/sbin/a2dissite default-ssl
-#RUN /usr/sbin/a2ensite default-ssl.conf
-RUN /usr/sbin/service apache2 force-reload 
-RUN /usr/sbin/service apache2 restart
+#RUN /usr/sbin/a2dissite default
+#RUN /usr/sbin/a2dissite default-ssl
+RUN /usr/sbin/a2ensite default-ssl
+CMD ["sh", "-c", "/usr/sbin/service apache2 start && /usr/sbin/service apache2 force-reload && /usr/sbin/service apache2 restart"]
 RUN /usr/sbin/update-rc.d apache2 enable
 VOLUME /var/www
 EXPOSE 443
