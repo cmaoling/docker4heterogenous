@@ -97,7 +97,7 @@ function createMount {
                                 if [ "$MODUS" == "UMOUNT" ]; then
 					cmd="umount $mountPoint"
                                         echo -n "Unmount $shareAddress  from $mountPoint "
-                                        sudo $cmd
+                                        $cmd
 					echo " - done"
 				else
 		                        echo "Mount $shareAddress on $mountPoint already exist."
@@ -107,7 +107,7 @@ function createMount {
 		                        mkdir -p $mountPoint
 		                        cmd="mount -t cifs -o credentials=$sambaCredentials $shareAddress $mountPoint"
 	        	                echo -n "Mounting $shareAddress on $mountPoint"
-	                	        sudo $cmd
+					$cmd
         	                	echo " - done"
 				else
 					echo "No Mount of  $shareAddress on $mountPoint found"
