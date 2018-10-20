@@ -1,14 +1,15 @@
 echo "$0 <configuration directory=$1>"
 WEBDAVCONF=${1:-.}
+WEBDAVUSER=${2:-`whoami`}
 WEBDAVROOT=/webdav
-SMBCREDENTIALS=`mktemp`
+#SMBCREDENTIALS=`mktemp`
 echo "CONF: $WEBDAVCONF"
 if  [ `mount | grep " on $WEBDAVCONF " | wc -l` -gt 0  ]; then
   echo "Already mounted. ABORT"
   exit
 fi
 echo "ROOT: $WEBDAVROOT"
-WEBDAVUSER=`whoami`
+#WEBDAVUSER=`whoami`
 echo "USER: $WEBDAVUSER"
 DOMAIN=DOCKERNET
 echo "DOMAIN:  $DOMAIN"
@@ -16,14 +17,16 @@ CONTAINERID=`docker run -d --privileged -e "WORKGROUP=$DOMAIN" -e "WEBDAV_ROOT=$
 echo "ContainerID: $CONTAINERID"
 DOCKERIP=`docker inspect $CONTAINERID | grep \"IPAddress\" | tr -d ' \,\"'  |  uniq | cut -d\: -f2`
 echo -n "Sleeping..."
-sleep 5
-echo "Creating credentials"
-echo "username=$WEBDAVUSER
-password="`echo $CONTAINERID | cut -c-12 | base64`"
-domain=$DOCKERNET" > $SMBCREDENTIALS
-echo "Credentials $SMBCREDENTIALS "
-smbclient -L $DOCKERIP -A $SMBCREDENTIALS
-echo -n "Mounting //$DOCKERIP/webdav $WEBDAVCONF for user $WEBDAVUSER" 
-sudo mount -t cifs -o uid=$WEBDAVUSER,credentials=$SMBCREDENTIALS //$DOCKERIP/webdav $WEBDAVCONF
-echo " - done."
+#sleep 5
+#echo "Creating credentials"
+#echo "username=$WEBDAVUSER
+#password="`echo $CONTAINERID | cut -c-12 | base64`"
+#domain=$DOCKERNET" > $SMBCREDENTIALS
+#echo "Credentials $SMBCREDENTIALS "
+#smbclient -L $DOCKERIP -A $SMBCREDENTIALS
+#echo -n "Mounting //$DOCKERIP/webdav $WEBDAVCONF for user $WEBDAVUSER" 
+#sudo mount -t cifs -o uid=$WEBDAVUSER,credentials=$SMBCREDENTIALS //$DOCKERIP/webdav $WEBDAVCONF
+#echo " - done."
+echo "$CONTAINERID:$DOCKERIP" | base64 >> $WEBDAVCONF/container.log
 ls -la $WEBDAVCONF
+
