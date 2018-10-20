@@ -1,1 +1,2 @@
-deb http://download.opensuse.org/repositories/isv:/ownCloud:/community/Debian_7.0/ /
+deb http://download.owncloud.org/download/repositories/stable/Debian_8.0/ /
+deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free
