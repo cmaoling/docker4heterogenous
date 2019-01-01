@@ -35,23 +35,10 @@ ln -s ${NEXTCLOUD_VOLUMEROOT}/config $ncpath
 ln -s ${NEXTCLOUD_VOLUMEROOT}/custom_apps $ncpath
 ln -s ${NEXTCLOUD_VOLUMEROOT}/data $ncpath
 ln -s ${NEXTCLOUD_VOLUMEROOT}/themes $ncpath
-echo "fix access rights"
-find ${ncpath}/ -type f -print0 | xargs -0 chmod 0640
-find ${ncpath}/ -type d -print0 | xargs -0 chmod 0750
 
-chown -R root:${htuser} ${ncpath}/
-chown -R ${htuser}:${htgroup} ${ncpath}/apps/
-chown -R ${htuser}:${htgroup} ${ncpath}/config/
-chown -R ${htuser}:${htgroup} ${ncpath}/custom_apps/
-chown -R ${htuser}:${htgroup} ${ncpath}/data/
-chown -R ${htuser}:${htgroup} ${ncpath}/themes/
+# outsource access right management
+./nextcloud-fixRights.sh
 
-touch ${ncpath}/.htaccess
-touch ${ncpath}/data/.htaccess
-chown root:${htuser} ${ncpath}/.htaccess
-chown root:${htuser} ${ncpath}/data/.htaccess
-
-chmod 0644 ${ncpath}/.htaccess
-chmod 0644 ${ncpath}/data/.htaccess
+#Nextcloud security advise. Need to be set in the config/config.php to actual data path rather than linking
 rm ${ncpath}/data
 ./start.sh

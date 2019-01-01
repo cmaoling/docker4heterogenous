@@ -34,6 +34,7 @@ RUN /usr/sbin/a2enmod headers
 CMD ["bash", "-c", "/etc/init.d/apache2 restart"]
 ADD bootstrap.sh /nextcloud.sh
 RUN chmod 0700 /nextcloud.sh
-RUN chmod 0750 /var/www/nextcloud/occ
+ADD fixRights.sh /nextcloud-fixRights.sh
+RUN chmod 0700 /nextcloud-fixRights.sh
 CMD ["bash", "nextcloud.sh"]
 
