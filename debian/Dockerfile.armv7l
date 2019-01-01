@@ -1,6 +1,7 @@
 ############################################################
 # Dockerfile to build base OS to be referred later
-FROM armhfbuild/[current.repository][current.tag]
+# FROM armhfbuild/[current.repository][current.tag]
+FROM [current.repository][current.tag]
 
 ###########################################################
 # File Author / Maintainer
