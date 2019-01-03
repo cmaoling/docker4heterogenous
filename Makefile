@@ -92,7 +92,7 @@ build: check Personalize
 	@echo "[Personalize] *** PWD=$(ROOT_DIR) ID=<$(ID)> EMAIL=<$(EMAIL)> GIT=<$(GIT)> DOCKER=$(DOCKERFILE) NAME=$(SED_NAME) TAG=<$(TAG)> PARENT_NAME=<$(PARENT)> PARENT_TAG=<$(PARENT_TAG)>   ***"
 	@echo "[Personalize] $(TEMPDIR)"
 	sed -e 's/\[current.repository\]/$(TARGET)/' -e 's/\[current.tag\]/$(TAG)/' -e 's/\[parent.repository\]/$(PARENT)/' -e 's/\[parent.tag\]/$(PARENT_TAG)/' -e 's/\[user.id\]/$(ID)/' -e 's/\[user.name\]/$(SED_NAME)/' -e 's/\[user.email\]/$(EMAIL)/' ${DOCKERFILE} > $(TEMPDIR)/Dockerfile
-	tar cvf  $(TEMPDIR)/tarball .
+	tar cvf $(TEMPDIR)/tarball --exclude-ignore=<(find . -type f -name '*Makefile*' | sed -r 's|/[^/]+$$||' | sort | uniq | grep -v '^\.$$ ') --exclude-vcs --exclude=Makefile .
 	tar --delete --wildcards -f $(TEMPDIR)/tarball ./Dockerfile*
 	@cd $(TEMPDIR); tar rf $(TEMPDIR)/tarball ./Dockerfile
 	tar tvf $(TEMPDIR)/tarball
