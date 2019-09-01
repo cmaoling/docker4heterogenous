@@ -41,4 +41,9 @@ ln -s ${NEXTCLOUD_VOLUMEROOT}/themes $ncpath
 
 #Nextcloud security advise. Need to be set in the config/config.php to actual data path rather than linking
 rm ${ncpath}/data
-./start.sh
+
+#https://unix.stackexchange.com/questions/155150/where-in-apache-2-do-you-set-the-servername-directive-globally
+echo "ServerName ${APACHE_SERVERNAME}" >> /etc/apache2/apache2.conf
+apache2ctl configtest
+apache2ctl restart
+tail -f ${APACHE_LOG_DIR}/*.log
